@@ -6,11 +6,10 @@ from flask_jwt_extended import (
 )
 from datetime import timedelta
 from flask_cors import CORS
+
 app = Flask(__name__)
 CORS(app)
 
-
-app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 app.config['JWT_SECRET_KEY'] = 'super-secret'  # schimbă cu o cheie reală
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
@@ -28,11 +27,6 @@ class Note(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     content = db.Column(db.Text)
-
-# INIT DB
-@app.before_request
-def create_tables():
-    db.create_all()
 
 # Pagină simplă pentru test
 @app.route('/')
@@ -87,5 +81,8 @@ def delete_note(note_id):
     db.session.commit()
     return jsonify({"msg": "Note deleted"}), 200
 
-#if __name__ == '__main__':
-    #app.run(debug=True)
+# Asta e doar pt rulare locală (nu afectează Render)
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
