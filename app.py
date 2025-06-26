@@ -87,5 +87,5 @@ def delete_note(note_id):
     db.session.commit()
     return jsonify({"msg": "Note deleted"}), 200
 
-if __name__ == '__main__':
-    app.run(debug=True)
+#if __name__ == '__main__':
+    #app.run(debug=True)
