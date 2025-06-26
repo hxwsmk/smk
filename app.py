@@ -5,6 +5,10 @@ from flask_jwt_extended import (
     jwt_required, get_jwt_identity
 )
 from datetime import timedelta
+from flask_cors import CORS
+app = Flask(__name__)
+CORS(app)
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
