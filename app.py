@@ -7,13 +7,16 @@ from flask_jwt_extended import (
 from datetime import timedelta
 from flask_cors import CORS
 
+# Inițializăm aplicația
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
-app.config['JWT_SECRET_KEY'] = 'super-secret'  # schimbă cu o cheie reală
+# Configurare bază de date
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'  # folosește doar una
+app.config['JWT_SECRET_KEY'] = 'super-secret'  # schimbă cu o cheie mai sigură în producție
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
 
+# Inițializare extensii
 db = SQLAlchemy(app)
 jwt = JWTManager(app)
 
@@ -28,7 +31,11 @@ class Note(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     content = db.Column(db.Text)
 
-# Pagină simplă pentru test
+# Creăm tabelele la pornire
+with app.app_context():
+    db.create_all()
+
+# Pagină test
 @app.route('/')
 def home():
     return '✅ Serverul Flask funcționează'
@@ -51,14 +58,14 @@ def login():
     user = User.query.filter_by(username=data['username'], password=data['password']).first()
     if not user:
         return jsonify({"msg": "Bad credentials"}), 401
-    token = create_access_token(identity=str(user.id))  # Cast to string
+    token = create_access_token(identity=str(user.id))
     return jsonify({"token": token}), 200
 
-# GET + POST NOTES
+# NOTES
 @app.route('/notes', methods=['GET', 'POST'])
 @jwt_required()
 def notes():
-    user_id = int(get_jwt_identity())  # Cast back to int
+    user_id = int(get_jwt_identity())
     if request.method == 'POST':
         data = request.get_json()
         new_note = Note(user_id=user_id, content=data['content'])
@@ -81,8 +88,6 @@ def delete_note(note_id):
     db.session.commit()
     return jsonify({"msg": "Note deleted"}), 200
 
-# Asta e doar pt rulare locală (nu afectează Render)
+# Pentru rulare locală
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
